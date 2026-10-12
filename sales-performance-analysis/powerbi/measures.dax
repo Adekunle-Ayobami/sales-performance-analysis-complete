@@ -1,0 +1,33 @@
+// Create each measure separately: Modeling > New measure. Do not paste this whole file as one measure.
+Gross Sales = SUM(Sales[SaleRevenue])
+
+Credit Value = SUM(Sales[CreditValue])
+
+Net Revenue = SUM(Sales[LineRevenue])
+
+Orders = CALCULATE(DISTINCTCOUNT(Sales[InvoiceNo]), Sales[IsSale] = 1)
+
+Average Order Value = DIVIDE([Gross Sales], [Orders])
+
+Credit Value Ratio = DIVIDE([Credit Value], [Gross Sales])
+
+Known Customers = CALCULATE(DISTINCTCOUNT(Sales[CustomerID]), Sales[IsSale] = 1, Sales[CustomerID] <> "")
+
+Repeat Customers = COUNTROWS(FILTER(FILTER(VALUES(Sales[CustomerID]), Sales[CustomerID] <> ""), CALCULATE([Orders]) >= 2))
+
+Repeat Customer Rate = DIVIDE([Repeat Customers], [Known Customers])
+
+Unknown Customer Sales = CALCULATE([Gross Sales], Sales[CustomerID] = "")
+
+Unknown Customer Sales Share = DIVIDE([Unknown Customer Sales], [Gross Sales])
+
+Gross Sales Previous Month = CALCULATE([Gross Sales], DATEADD('Date'[Date], -1, MONTH))
+
+MoM Growth = IF(MAX('Date'[Date]) > DATE(2011,11,30), BLANK(), DIVIDE([Gross Sales] - [Gross Sales Previous Month], [Gross Sales Previous Month]))
+
+Revenue Bridge Difference = [Gross Sales] - [Credit Value] - [Net Revenue]
+
+Ledger Lines = COUNTROWS(Sales)
+
+// CALCULATED TABLE, not a measure. Modeling > New table:
+Date = ADDCOLUMNS(CALENDAR(DATE(2010,12,1),DATE(2011,12,31)), "Year", YEAR([Date]), "MonthNumber", MONTH([Date]), "YearMonth", FORMAT([Date],"yyyy-MM"), "MonthStart", DATE(YEAR([Date]),MONTH([Date]),1), "CompleteMonth", IF([Date] <= DATE(2011,11,30),1,0))
